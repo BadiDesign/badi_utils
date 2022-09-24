@@ -1,5 +1,7 @@
 from django.conf import settings
 
+from src.badi_utils.i18n import BadiI18n
+
 Log = getattr(settings, "LOG_MODEL")
 
 
@@ -27,14 +29,14 @@ def log(user, priority, action, status, my_object=None, field=None, text=None):
     lg.status = status
 
     if text:
-        lg.title = 'سفارشی'
+        lg.title = BadiI18n.t('custom')
         lg.description = text
     else:
         if action == 1:
-            lg.title = 'ورود به سامانه'
+            lg.title = BadiI18n.t('login')
             lg.description = 'کاربر ' + str(user) + ' به سامانه وارد شد.'
         elif action == 2:
-            lg.title = 'خروج از سامانه'
+            lg.title = BadiI18n.t('logout')
             lg.description = 'کاربر ' + str(user) + ' از سامانه خارج شد.'
         elif action == 3:
             lg.title = 'ایجاد رکورد'

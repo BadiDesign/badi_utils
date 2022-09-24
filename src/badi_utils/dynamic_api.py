@@ -17,9 +17,11 @@ from rest_framework_simplejwt.serializers import TokenObtainPairSerializer, Toke
 from rest_framework_simplejwt.settings import api_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from plugins.logging import log
-from plugins.dynamic_models import custom_change_date
-from user.models import User
+from .logging import log
+from .dynamic_models import custom_change_date
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 def replace_star(key, dictionary):

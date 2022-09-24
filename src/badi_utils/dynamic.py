@@ -1,30 +1,20 @@
-import json
-
 from django import forms
-from plugins.project_config import DISABLE_FORM_SUBMIT
+from django.conf import settings
 from django.contrib import messages
 from django.db import models
 from django.db.models import Q, Model
 from django.forms import ModelForm
 from django.http import HttpResponse, Http404
 from django.urls import path
-from django.utils.encoding import force_text
 from django.views import View
 from django.views.generic import CreateView, UpdateView
 from django.views.generic.base import TemplateView
 from django_datatables_view.base_datatable_view import BaseDatatableView
-from django_datatables_view.mixins import LazyEncoder
-from rest_framework import serializers, viewsets, permissions
-from rest_framework import status
-from rest_framework.decorators import action
-from rest_framework.exceptions import APIException
-from rest_framework.response import Response
-from rest_framework.views import APIView
-
 from .date_calc import custom_change_date
-from .dynamic_models import PersianDateField
 from .logging import log
-from .utils import LoginRequiredMixin, CustomPermissionRequiredMixin, PermissionsApi
+from .utils import LoginRequiredMixin, CustomPermissionRequiredMixin
+
+DISABLE_FORM_SUBMIT = getattr(settings, "DISABLE_FORM_SUBMIT", True)
 
 
 def multi_generator_url(model: Model, create=None, datatable=None, update=None, delete=None, add_model_to_url=True):

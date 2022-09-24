@@ -5,10 +5,15 @@ from src.badi_utils.errors import BadiErrorCodes
 default_lang = getattr(settings, "BADI_I18N", "fa")
 i18n_values = {
     'fa': {
-        BadiErrorCodes.permission_denied: 'شما دسترسی به این بخش ندارید!'
+        BadiErrorCodes.permission_denied: 'شما دسترسی به این بخش ندارید!',
+        "custom": "سفارشی",
+        "login": "ورود",
+        "logout": "خروج",
+
     },
     'en': {
-        BadiErrorCodes.permission_denied: 'You dont have permission to this section!'
+        BadiErrorCodes.permission_denied: 'You dont have permission to this section!',
+
     },
 }
 

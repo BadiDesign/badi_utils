@@ -9,6 +9,7 @@ from django.db.models import Model
 from .date_calc import custom_change_date
 
 pattern_date = re.compile(r'(\d+/\d+/\d+)')
+pattern_datetime = re.compile(r'(\d+/\d+/\d+)')
 
 
 class BadiModel:
