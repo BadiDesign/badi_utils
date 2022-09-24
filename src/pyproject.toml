@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "badi_utils"
-version = "0.0.1"
+version = "0.1.0"
 authors = [
   { name="Mohammad Shekari Badi", email="Ad.BadiDesign@gmail.com" },
 ]
-description = "Python Utils"
+description = "Python Django Utils"
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.7"
