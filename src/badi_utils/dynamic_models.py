@@ -1,14 +1,23 @@
-import datetime
 import re
 
 from django.contrib import admin
 from django.contrib.sites import apps
 from django.core import exceptions
 from django.db import models
+from django.db.models import Model
 
-from src.badi_utils.utils import custom_change_date
+from .date_calc import custom_change_date
 
 pattern_date = re.compile(r'(\d+/\d+/\d+)')
+
+
+class BadiModel:
+    _meta = Model.meta
+
+    def get_columns(self):
+        fields = [field.attname.replace('_id', '') for field in self._meta.fields]
+        many_2_many = [x.name for x in self._meta.many_to_many]
+        return fields + many_2_many + ['']
 
 
 class PersianDateField(models.DateField):
@@ -64,6 +73,10 @@ class PersianDateTimeField(models.DateTimeField):
         return super().to_python(value)
 
 
+def get_app_models(module):
+    return apps.get_app_config(module).models.items()
+
+
 def set_admin(module):
-    for key, model in apps.get_app_config(module).models.items():
+    for key, model in get_app_models(module):
         admin.site.register(model)

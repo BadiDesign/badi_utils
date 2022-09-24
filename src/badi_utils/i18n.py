@@ -1,9 +1,15 @@
 from django.conf import settings
 
+from src.badi_utils.errors import BadiErrorCodes
+
 default_lang = getattr(settings, "BADI_I18N", "fa")
 i18n_values = {
-    'fa': {},
-    'en': {},
+    'fa': {
+        BadiErrorCodes.permission_denied: 'شما دسترسی به این بخش ندارید!'
+    },
+    'en': {
+        BadiErrorCodes.permission_denied: 'You dont have permission to this section!'
+    },
 }
 
 
@@ -13,5 +19,6 @@ class BadiI18n:
     def __init__(self, lang=default_lang) -> None:
         self.lang = lang
 
-    def t(self, value):
-        return i18n_values[self.lang].get(value, value)
+    @classmethod
+    def t(cls, value):
+        return i18n_values[cls.lang].get(value, value)

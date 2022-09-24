@@ -22,6 +22,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from unidecode import unidecode
 
 from .dynamic_api import CustomValidation
+from .i18n import BadiI18n
 from .logging import log
 
 
@@ -29,7 +30,7 @@ class CustomAccessMixin(AccessMixin):
     permission_required = None
 
     def handle_no_permission(self):
-        messages.error(self.request, 'شما دسترسی به این بخش ندارید!')
+        messages.error(self.request, BadiI18n.t('NO_PERMISSION'))
         return redirect('/')
 
 
@@ -55,7 +56,6 @@ class CustomPermissionRequiredMixin(CustomAccessMixin):
         return super().dispatch(request, *args, **kwargs)
 
 
-
 class LoginRequiredMixin(object):
 
     @classmethod
@@ -66,9 +66,9 @@ class LoginRequiredMixin(object):
 
 def clean_cost(cost: str):
     cost = cost.split(' ')
-    fcost = cost[0].split(',')
-    ffcost = ''.join(fcost)
-    return ffcost
+    cost = cost[0].split(',')
+    cost = ''.join(cost)
+    return cost
 
 
 def permissions_json():

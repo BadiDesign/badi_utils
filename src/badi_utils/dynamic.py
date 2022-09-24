@@ -502,26 +502,18 @@ class DynamicDatatableView(LoginRequiredMixin, CustomPermissionRequiredMixin, Ba
                                                                               self.model._meta.many_to_many]
 
     def get_order_columns(self):
-        return self.order_columns if self.order_columns else [field.attname.replace('_id', '') for field in
-                                                              self.model._meta.fields] + [x.name for x in
-                                                                                          self.model._meta.many_to_many] + [
-                                                                 '']
+        if self.order_columns:
+            return self.order_columns
+        else:
+            return self.model.get_coloums()
 
     def filter_queryset(self, qs):
-        """
-        برای جستجو در عنوان آخرین وضیعت هاست
-
-        Arguments:
-            qs:
-                کوئری مورد جستجو است
-        """
         search = self.request.GET.get('search[value]', None)
         if search:
             qs = qs.filter(Q(title__icontains=search))
         return qs
 
     def render_column(self, row, column):
-
         colType = type(getattr(row, column)).__name__
         value = getattr(row, column)
         if value is None or colType == 'str' or colType == 'int':
