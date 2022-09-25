@@ -13,7 +13,6 @@ pattern_datetime = re.compile(r'(\d+/\d+/\d+)')
 
 
 class BadiModel:
-    _meta = Model.meta
 
     def get_columns(self):
         fields = [field.attname.replace('_id', '') for field in self._meta.fields]
