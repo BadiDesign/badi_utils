@@ -29,7 +29,7 @@ class PersianValidations:
         return (s < 2 and check == s) or (s >= 2 and check + s == 11)
 
 
-class CustomModelValidators:
+class BadiValidators:
 
     @staticmethod
     def validate_persian(value):
@@ -45,3 +45,7 @@ class CustomModelValidators:
         if not re.search(r'^[-a-zA-Z0-9_۰۱۲۳۴۵۶۷۸۹پچجحخهعغفقثصضشسیبلاتنمآکگوئدذرزطظژؤإأء]+\Z', value):
             raise ValidationError('اسلاک آدرس وارد شده صحیح نمی باشد.')
 
+    @staticmethod
+    def username(value):
+        is_valid = value and re.match("^[a-zA-Z0-9_]+$", value) and len(value) > 3 and not value.isdigit()
+        return not not is_valid
