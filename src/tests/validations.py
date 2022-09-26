@@ -1,4 +1,4 @@
-from src.badi_utils.validations import BadiValidators
+from .validations import BadiValidators
 
 
 def test_validate_username(value):

@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from src.badi_utils.i18n import BadiI18n
+from .i18n import BadiI18n
 
 Log = getattr(settings, "LOG_MODEL")
 

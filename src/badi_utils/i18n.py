@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from src.badi_utils.errors import BadiErrorCodes
+from .errors import BadiErrorCodes
 
 default_lang = getattr(settings, "BADI_I18N", "fa")
 i18n_values = {
