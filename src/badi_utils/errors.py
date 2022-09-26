@@ -1,5 +1,5 @@
 class BadiErrorCodes:
-    phone = 'IN_VALID_PHONE'
+    phone = 'INVALID_PHONE'
     unique = 'EARLY_EXISTS'
     sms_send_recently = 'SMS_SEND_RECENTLY'
     not_found = 'NOT_FOUND'

@@ -1,9 +1,7 @@
-import datetime
 import random
 import re
 import string
 from random import randint
-
 from django.apps import apps
 from django.conf import settings
 from django.contrib import messages
@@ -12,25 +10,19 @@ from django.contrib.auth.mixins import AccessMixin
 from django.contrib.auth.models import Permission
 from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
-from django.http import Http404
-from django.http import HttpResponse
 from django.shortcuts import redirect
-from django.views import View
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-from unidecode import unidecode
-
+from django.utils.translation import gettext_lazy as _
 from .dynamic_api import CustomValidation
-from .i18n import BadiI18n
-from .logging import log
 
 
 class CustomAccessMixin(AccessMixin):
     permission_required = None
 
     def handle_no_permission(self):
-        messages.error(self.request, BadiI18n.t('NO_PERMISSION'))
+        messages.error(self.request, _('NO_PERMISSION'))
         return redirect('/')
 
 

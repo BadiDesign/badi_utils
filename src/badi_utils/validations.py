@@ -49,3 +49,9 @@ class BadiValidators:
     def username(value):
         is_valid = value and re.match("^[a-zA-Z0-9_]+$", value) and len(value) > 3 and not value.isdigit()
         return not not is_valid
+
+    @staticmethod
+    def is_mail(value):
+        if not value or not re.search(r'[^@]+@[^@]+\.[^@]+', value):
+            return False
+        return value
