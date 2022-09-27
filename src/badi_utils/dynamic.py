@@ -293,6 +293,12 @@ class DynamicListView(LoginRequiredMixin, CustomPermissionRequiredMixin, Templat
     deleteURL = None
     deleteShow = True
     editShow = True
+    api_url = None
+
+    def get_api_url(self):
+        if self.api_url:
+            return self.api_url
+        return get_model_api_url(self.model, self.__class__.__name__)
 
     def get_template_names(self):
         if self.template_name:
@@ -348,6 +354,7 @@ class DynamicListView(LoginRequiredMixin, CustomPermissionRequiredMixin, Templat
         context = super().get_context_data(**kwargs)
         context['title'] = self.get_title()
         context['model_name'] = self.get_model_name()
+        context['api_url'] = self.get_api_url()
         if self.datatableEnable:
             context['datatableURL'] = self.get_datatableURL()
             context['cols'] = self.get_datatable_cols()
