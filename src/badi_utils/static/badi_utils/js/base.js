@@ -1,45 +1,15 @@
-const success = "#1BC5BD", info = "#8950FC", warning = "#FFA800", danger = "#F64E60";
+const success = "#1BC5BD", info = "#8950FC", primary = "#0d353f", warning = "#FFA800", danger = "#F64E60";
 const persianMonth = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",]
-const urlSearchParams = new URLSearchParams(window.location.search)
-const badiConfig = {
-    ...{
-        tooltip: true,
-        star: true,
-        select2_placeholder: 'جهت انتخاب کلیک کنید!',
-        select2_direction: 'rtl',
-        select2_active: true,
-        select2_searching_text: 'درحال جستجو',
-        select2_no_result_text: 'موردی یافت نشد',
-        element_image_404: '/static/assets/media/users/default.jpg',
-        currency_append: " تومان",
-        calendar_date_active: true,
-        calendar_datetime_active: true,
-        clock_picker_active: true,
-
-
-    }, ...window['BADI_CONFIG']
-}
-const getCurrentValueOfKey = (key, def = "") => {
-    if (!localStorage.getItem(key)) {
-        localStorage.setItem(key, "")
-    }
-    return localStorage.getItem(key)
-}
-const getCurrentPage = (default_page = 1) => {
-    let page = urlSearchParams.get('page');
-    if (page) {
-        return parseInt(page)
-    } else {
-        return default_page
-    }
-}
-const getCurrentPages = (default_page = 1) => {
-    let page = urlSearchParams.get('pages');
-    if (page) {
-        return parseInt(page)
-    } else {
-        return default_page
-    }
+if (!String.prototype.isInList) {
+    Object.defineProperty(String.prototype, 'isInList', {
+        get: () => function (...args) {
+            let value = this.valueOf();
+            for (let i = 0, l = args.length; i < l; i += 1) {
+                if (arguments[i] === value) return true;
+            }
+            return false;
+        }
+    });
 }
 const initDefaultFormsUI = () => {
     $('[data-toggle="tooltip"], [data-toggle="kt-tooltip"]').tooltip();
@@ -78,20 +48,31 @@ const initDefaultFormsUI = () => {
     }).keyup(function () {
         JustPersian($(this));
     });
-    if (badiConfig.select2_active)
-        $('form select:not(.no-select2)').select2({
-            dir: badiConfig.select2_direction,
-            minimumResultsForSearch: -1,
-            allowClear: true,
-            placeholder: badiConfig.select2_placeholder
-        });
-    $('form').on('reset', function (e) {
-        $(this).find('select').val('').change()
+    $('form select:not(.no-select2)').select2({
+        minimumResultsForSearch: -1,
+        allowClear: true,
+        placeholder: 'Click here for Select...'
     });
+
 }
 $(document).ready(function () {
     initDefaultFormsUI()
 });
+
+function dynamicSort(property) {
+    var sortOrder = 1;
+    if (property[0] === "-") {
+        sortOrder = -1;
+        property = property.substr(1);
+    }
+    return function (a, b) {
+        /* next line works with strings and numbers,
+         * and you may want to customize it to your needs
+         */
+        var result = (a[property] < b[property]) ? -1 : (a[property] > b[property]) ? 1 : 0;
+        return result * sortOrder;
+    }
+}
 
 // using jQuery
 function getCookie(name) {
@@ -126,9 +107,9 @@ $.ajaxSetup({
     }
 });
 
-function elementImageNotFound(image) {
+function UserimgError(image) {
     image.onerror = "";
-    image.src = badiConfig.element_image_404;
+    image.src = '/static/assets/media/users/default.jpg';
     return true;
 }
 
@@ -138,23 +119,27 @@ var scrollToElement = function (el, ms) {
         scrollTop: $(el).offset().top
     }, speed);
 };
+var daddy;
+var i;
+
+
 const swalDelete = {
-    title: 'آیا مطمئن هستید ؟',
-    text: "رکورد پس از حذف قابل بازگشت نخواهد بود !",
+    title: 'Are you sure?',
+    text: "You won't be able to revert this!",
     icon: 'warning',
     showCancelButton: true,
     confirmButtonColor: '#F64E60',
     cancelButtonColor: '#0bb783',
-    confirmButtonText: 'بله! حذفش کن',
-    cancelButtonText: 'لغو'
+    confirmButtonText: 'Yes! delete it',
+    cancelButtonText: "Cancel"
 };
-const swalFireError = (desc = 'مشکلی پیش آمده است.') => {
-    swal.fire('خطا', desc, 'error');
+const swalFireError = (desc = 'Unexpected error happened') => {
+    swal.fire('Failed', desc, 'error');
 };
-const swalFireSuccess = (desc = 'با موفقیت انجام شد.') => {
-    swal.fire('انجام شد!', desc, 'success');
+const swalFireSuccess = (desc = 'Your request Done successfully') => {
+    swal.fire('Done', desc, 'success');
 };
-const swalFireLoading = (title = 'درحال دریافت اطلاعات...', html = "لطفا منتظر بمانید") => {
+const swalFireLoading = (title = 'loading...', html = "Please wait") => {
     Swal.fire({
         title: title,
         html: html,
@@ -222,14 +207,14 @@ const CheckPercentageNumber = (input) => {
 }
 
 $("input[data-type='currency'],input.currency").on({
-    keyup: function (e) {
-        formatCurrency($(this), event);
+    keyup: function () {
+        formatCurrency($(this));
     },
-    blur: function (e) {
-        formatCurrency($(this), event);
+    blur: function () {
+        formatCurrency($(this), "blur");
     }
-}).each(function (e) {
-    formatCurrency($(this), event);
+}).each(function () {
+    formatCurrency($(this));
 });
 
 function formatNumber(n) {
@@ -249,16 +234,8 @@ const dateToPersianString = (date) => {
     return date
 }
 
-function formatCurrency(input, event) {
-    let key
-    let input_val
-    if (event) {
-        key = event.keyCode || event.charCode;
-        if (key == 8 || key == 46) {
-            $(input).val($(input).val().replace(/[^0-9.]/g, "").slice(0, -1))
-        }
-    }
-    input_val = input.val();
+function formatCurrency(input, blur) {
+    var input_val = input.val();
     if (input_val === "") {
         return;
     }
@@ -271,11 +248,11 @@ function formatCurrency(input, event) {
         left_side = formatNumber(left_side);
         right_side = formatNumber(right_side);
         right_side = right_side.substring(0, 2);
-        input_val = left_side + badiConfig.currency_append;
+        input_val = left_side + " $";
 
     } else {
         input_val = formatNumber(input_val);
-        input_val = input_val + badiConfig.currency_append;
+        input_val = input_val + " $";
     }
     input.val(input_val);
     var updated_len = input_val.length;
@@ -297,13 +274,29 @@ const numberFloatRegax = {
 };
 const UsernameRegax = /^[a-zA-Z0-9_.-]+$/;
 const notEmpty = {
-    message: 'این فیلد الزامی است!'
+    message: 'این فیلد required است!'
 };
 const between_validation = (start, end) => {
     return {
         min: start,
         max: end,
         message: ' این فیلد باید بین ' + start + ' تا ' + end + ' کاراکتر باشد!'
+    }
+}
+const moadelValidation = {
+    numeric: {
+        message: 'لطفا فقط عدد وارد کنید',
+        // The default separators
+    },
+    stringLength: {
+        min: 4,
+        max: 4,
+        message: 'نمره باید 4 رقمی باشد!'
+    },
+    between: {
+        min: 0,
+        max: 2000,
+        message: 'معدل قابل قبول بین 0 الی 2000 می باشد!'
     }
 }
 const JustPersian = (input) => {
@@ -313,6 +306,21 @@ const JustPersian = (input) => {
         }
     }
 }
+const enableLoading = (qs = '#kt_content > div', parent = 1) => {
+    let el = document.querySelector(qs)
+    for (let i = 0; i < parent; i++) {
+        el = el.parentElement
+    }
+    el.classList.add('loading')
+}
+const disableLoading = (qs = '#kt_content > div', parent = 1) => {
+    let el = document.querySelector(qs)
+    for (let i = 0; i < parent; i++) {
+        el = el.parentElement
+    }
+    el.classList.remove('loading')
+}
+
 const loadingFormENABLE = (querySelector = 'form', buttons = [], relative = false, size = null) => {
     if (document.querySelector(querySelector)) {
         document.querySelector(querySelector).parentElement.classList.add('loading');
@@ -339,10 +347,9 @@ $('form').on("submit", function (e) {
 });
 const date_picker_config = {
     altFormat: 'X',
-    calendarType: 'persian',
+    calendarType: 'gregorian',
     initialValueType: 'gregorian',
-    persianDigit: false,
-    format: 'YYYY/MM/D',
+    format: 'YYYY-MM-DD',
     observer: true,
     initialValue: true,
     timePicker: {
@@ -353,30 +360,15 @@ const date_picker_config = {
             enabled: false
         }
     },
-    onSelect: function (e) {
-        let input_date = $(this.model.input.elem)
-        if (!valid_persian_date.test(toEnglishDigit(input_date.val()))) {
-            swalFireError('تاریخ وارد شده صحیح نمی باشد')
-            $(input_date).val('')
-            $(input_date).removeClass('is-valid')
-            $(input_date).addClass('is-invalid')
-        } else {
-            $(input_date).addClass('is-valid')
-            $(input_date).removeClass('is-invalid')
-        }
-        $('.datepicker-plot-area td span').click(function (e) {
-            $('.datepicker-plot-area').parent().addClass('pwt-hide')
-        });
-    }
 };
 const datetime_picker_config = {
     altFormat: 'X',
-    calendarType: 'persian',
+    calendarType: 'gregorian',
     initialValueType: 'gregorian',
     persianDigit: false,
-    format: 'YYYY/MM/D HH:mm:ss',
+    format: 'YYYY-MM-DD HH:mm:ss',
     observer: true,
-    initialValue: true,
+    initialValue: false,
     timePicker: {
         enabled: true
     },
@@ -385,55 +377,20 @@ const datetime_picker_config = {
             enabled: false
         }
     },
-    onSelect: function (e) {
-        let input_date = $(this.model.input.elem)
-        if (!valid_persian_datetime.test(toEnglishDigit(input_date.val()))) {
-            swalFireError('تاریخ وارد شده صحیح نمی باشد')
-            $(input_date).val('')
-            $(input_date).removeClass('is-valid')
-            $(input_date).addClass('is-invalid')
-        } else {
-            $(input_date).addClass('is-valid')
-            $(input_date).removeClass('is-invalid')
-        }
-        $('.datepicker-plot-area td span').click(function (e) {
-            $('.datepicker-plot-area').parent().addClass('pwt-hide')
-        });
-    }
 };
-if (badiConfig.calendar_date_active)
-    if (document.querySelector('.date'))
-        $('.date').change(function (e) {
-                let input_date = $(this)
-                if (!valid_persian_date.test(toEnglishDigit(input_date.val()))) {
-                    swalFireError('تاریخ وارد شده صحیح نمی باشد')
-                    input_date.val('')
-                    input_date.removeClass('is-valid')
-                    input_date.addClass('is-invalid')
-                } else {
-                    input_date.addClass('is-valid')
-                    input_date.removeClass('is-invalid')
-                }
-            }
-        ).persianDatepicker(date_picker_config);
-if (badiConfig.calendar_datetime_active)
-    if (document.querySelector('.date-time'))
-        $('.date-time').change(function (e) {
-                let input_date = $(this)
-                if (!valid_persian_datetime.test(toEnglishDigit(input_date.val()))) {
-                    swalFireError('تاریخ وارد شده صحیح نمی باشد')
-                    input_date.val('')
-                    input_date.removeClass('is-valid')
-                    input_date.addClass('is-invalid')
-                } else {
-                    input_date.addClass('is-valid')
-                    input_date.removeClass('is-invalid')
-                }
-            }
-        ).persianDatepicker(datetime_picker_config);
+if (document.querySelector('.date'))
+    $('.date').persianDatepicker(date_picker_config);
+if (document.querySelector('.date-time, #id_created_at_lt'))
+    $('.date-time, #id_created_at_lt').persianDatepicker(datetime_picker_config);
+if (document.querySelector('.date-time, #id_created_at_lg'))
+    $('.date-time, #id_created_at_lg').persianDatepicker(datetime_picker_config);
 $('.datepicker-plot-area td span').click(function (e) {
     $('.datepicker-plot-area').parent().addClass('pwt-hide')
 });
+const FilterSubmitDrawTable = (e, table) => {
+    e.preventDefault();
+    table.draw()
+}
 const spinnerButtonON = (qs) => {
     if (qs.type === 'checkbox') {
         qs.parentElement.classList.add('opacity-30')
@@ -455,20 +412,18 @@ $('form a').click(function (e) {
         $(this).addClass('spinner spinner-white spinner-right');
 });
 
-$('form input[required]:not([type="checkbox"]):not([type="hidden"]):not([type="hidden"]),form select[required],form textarea[required]').parent().append(`<span class="form-text d-none text-muted"> الزامی </span>`);
-$('form input:not([type="checkbox"]):not(:required):not([type="hidden"]),form select:not(:required),form textarea:not(:required)').parent().append(`<span class="form-text d-none text-muted"> اختیاری </span>`);
+$('form:not(.filters) input[required]:not([type="checkbox"]):not([type="hidden"]):not([type="hidden"]),form:not(.filters) select[required],form:not(.filters) textarea[required]').parent().append(`<span class="form-text d-none text-muted"> required </span>`);
+$('form:not(.filters) input:not([type="checkbox"]):not(:required):not([type="hidden"]),form:not(.filters) select:not(:required),form:not(.filters) textarea:not(:required)').parent().append(`<span class="form-text d-none text-muted"> optical </span>`);
 $('.no-form-text span.form-text.text-muted').remove();
 $('span.form-text.text-muted').removeClass('d-none');
-const toastrFireError = (desc = 'مشکلی پیش آمده است.') => {
+toastr.options.positionClass = 'toast-top-right'
+const toastrFireError = (desc = 'Some Error Happened!') => {
     toastr.error(desc);
 };
-const toastrFireSuccess = (desc = 'با موفقیت انجام شد.') => {
+const toastrFireSuccess = (desc = 'Done Successfully.') => {
     toastr.success(desc);
 };
 $('form:not(.filters):not([data-filter])').parent().prepend(`<div class="precustom-loader"><div class="custom-loader"></div></div>`)
-$.fn.select2.defaults.defaults.language['searching'] = () => badiConfig.select2_searching_text
-$.fn.select2.defaults.defaults.language['noResults'] = () => badiConfig.select2_no_result_text
-
 
 function removeItemAll(arr, value) {
     var i = 0;
@@ -675,8 +630,7 @@ const clockPicker = (inputSelectors, title = undefined, defaultValue = undefined
     }
 };
 $(document).ready(function () {
-    if (badiConfig.clock_picker_active)
-        clockPicker('.time');
+    clockPicker('.time');
 });
 const setProgress = (qs = '.progress-upload', percent, uploaded, total) => {
     $(qs).removeClass('fade');
@@ -688,7 +642,6 @@ const setProgress = (qs = '.progress-upload', percent, uploaded, total) => {
     }
 };
 $(`.menu-item a[href="${CURRENT_URL}"]`).addClass('active').parent().addClass('menu-item-active')
-$(`a.nav-link[href="${CURRENT_URL}"]`).addClass('active')
 $('input[data-show]').change(function () {
     let $target = $($(this).attr('data-show'));
     $target.toggleClass('d-none')
@@ -696,40 +649,52 @@ $('input[data-show]').change(function () {
         $target.find('input,select,textarea').val('').change()
 })
 
+function timeSince(date) {
+    let seconds = Math.floor((new Date() - date) / 1000);
+    let interval = seconds / 31536000;
+    if (interval > 1) {
+        return Math.floor(interval) + " years";
+    }
+    interval = seconds / 2592000;
+    if (interval > 1) {
+        return Math.floor(interval) + " months";
+    }
+    interval = seconds / 86400;
+    if (interval > 1) {
+        return Math.floor(interval) + " days";
+    }
+    interval = seconds / 3600;
+    if (interval > 1) {
+        return Math.floor(interval) + " hours";
+    }
+    interval = seconds / 60;
+    if (interval > 1) {
+        return Math.floor(interval) + " minutes";
+    }
+    return Math.floor(seconds) + " seconds";
+}
+
 function convertToSlug(titleStr) {
     titleStr = titleStr.replace(/^\s+|\s+$/g, '');
     titleStr = titleStr.toLowerCase();
     titleStr = titleStr.replace(/[^a-z0-9_\s-ءاأإآؤئبتثجحخدذرزسشصضطظعغفقكلمنهويةى]#u/g, '')
-        .replace('»', '').replace('«', '').replace(':', '').replace(',', '').replace('‌', '-')
+        .replace('»', '').replace('«', '').replace(':', '').replace('‌', '-')
         .replace(/\s+/g, '-')
+        .replace(',', '').replace('’', '')
         .replace(/-+/g, '-');
     return titleStr;
 }
 
-function copyToClipboard(text) {
-    if (window.clipboardData && window.clipboardData.setData) {
-        // IE specific code path to prevent textarea being shown while dialog is visible.
-        return clipboardData.setData("Text", text);
-
-    } else if (document.queryCommandSupported && document.queryCommandSupported("copy")) {
-        var textarea = document.createElement("textarea");
-        textarea.textContent = text;
-        textarea.style.position = "fixed";  // Prevent scrolling to bottom of page in MS Edge.
-        document.body.appendChild(textarea);
-        textarea.select();
-        try {
-            return document.execCommand("copy");  // Security exception may be thrown by some browsers.
-        } catch (ex) {
-            console.warn("Copy to clipboard failed.", ex);
-            return false;
-        } finally {
-            document.body.removeChild(textarea);
-        }
+class FormValidationMessages {
+    static notEmpty() {
+        return 'this field is Required.';
     }
-}
 
-const copyText = (value) => {
-    const result = copyToClipboard(value);
-    if (result)
-        toastrFireSuccess('به کلیپ بورد کپی شد')
+    static between(x, y) {
+        return `this field length must be between ${x} and ${y} character!`;
+    }
+
+    static notEqual(x, y) {
+        return `${x} and ${y} are not Equal!`;
+    }
 }

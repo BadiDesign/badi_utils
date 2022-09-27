@@ -1,6 +1,3 @@
-const CURRENT_URL = window.location.pathname,
-    CURRENT_SEARCH = window.location.search,
-    URL_SEARCH_PARAMS = new URLSearchParams(window.location.search);
 const message_url = (text) => {
     return '?message_text={' + text + '}'
 };
@@ -11,8 +8,8 @@ const go_to_login = (msg = '') => {
     window.open(LOGIN_URL + msg, '_self');
 };
 
-if (CURRENT_SEARCH.includes('message_text={')) {
-    const message = CURRENT_SEARCH.split('message_text={')[1].split('}')[0]
+if (CURRENT_URL.includes('message_text={')) {
+    const message = CURRENT_URL.split('message_text={')[1].split('}')[0]
     if (message.length > 5) {
         toastr.success(decodeURI(message));
         window.history.replaceState('Object', 'Title', window.location.pathname);
@@ -103,7 +100,7 @@ const getFormDataWithFile = (qs = 'form') => {
                 res.append(inputEl.name, toEnglishDate($(inputEl).val()))
         } else if (inputEl.classList.contains('currency')) {
             res.delete(inputEl.name);
-            res.append(inputEl.name, deFormatNumber($(inputEl).val()))
+            res[inputEl.name] = deFormatNumber($(inputEl).val())
         }
     }
     return res;
@@ -280,17 +277,16 @@ const ApiAjax = (jsonValues) => {
     let api_data = jsonValues['data'] ? jsonValues['data'] : null;
     let api_token = jsonValues['token'] !== undefined ? jsonValues['token'] : true;
     const api_method = jsonValues['method'] ? jsonValues['method'] : 'GET';
-    const api_progress = jsonValues['progress'] ? jsonValues['progress'] : null;
     const api_handler = jsonValues['handler'] ? jsonValues['handler'] : true;
     const api_clearForm = jsonValues['clearForm'] !== undefined ? jsonValues['clearForm'] : true;
-    const api_success_message = (jsonValues['success_message'] !== undefined) ? jsonValues['success_message'] : 'با موفقیت انجام شد!';
+    const api_success_message = (jsonValues['success_message'] !== undefined) ? jsonValues['success_message'] : 'Done Successfully!';
     const api_success_url = jsonValues['success_url'];
     const api_extra = jsonValues['extra'];
     const api_form = jsonValues['form'];
     const api_params = jsonValues['params'];
     const api_selector = jsonValues['selector'] ? jsonValues['selector'] : null;
     let api_header = {
-        'Authorization': localStorage.getItem('session_key'),
+        // 'Authorization': localStorage.getItem('session_key'),
         'Content-Type': 'application/json'
     }
     let api_final_data = {};
@@ -329,28 +325,8 @@ const ApiAjax = (jsonValues) => {
         }
         api_final_data = getFormDataWithFile(api_form)
     }
-    if (!api_token) {
-        delete api_header['Authorization']
-    }
     api_final_data = api_check_data(api_final_data)
     $.ajax({
-        xhr: function () {
-            var xhr = new window.XMLHttpRequest();
-            if (api_progress) {
-                xhr.upload.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        api_progress(parseInt(evt.loaded / evt.total * 100), evt.loaded / 1000, evt.total / 1000)
-                    }
-                }, false);
-
-                xhr.addEventListener("progress", function (evt) {
-                    if (evt.lengthComputable) {
-                        api_progress(parseInt(evt.loaded / evt.total * 100), evt.loaded / 1000, evt.total / 1000)
-                    }
-                }, false);
-            }
-            return xhr;
-        },
         headers: api_header,
         method: api_method,
         processData: processData,
@@ -444,8 +420,7 @@ const ApiAjaxReader = (jsonValues) => {
     };
     const api_success = jsonValues['success'] ? jsonValues['success'] : (x) => {
     };
-    let api_token = jsonValues['token'] !== undefined ? jsonValues['token'] : true;
-    let api_data = jsonValues['data'] ? jsonValues['data'] : {};
+    const api_data = jsonValues['data'] ? jsonValues['data'] : {};
     const api_modal = jsonValues['modal'] ? jsonValues['modal'] : null;
     const api_loading = jsonValues['loading'] ? jsonValues['loading'] : true;
     const api_method = jsonValues['method'] ? jsonValues['method'] : 'GET';
@@ -456,23 +431,15 @@ const ApiAjaxReader = (jsonValues) => {
         api_url += api_pk + '/';
     if (api_loading)
         loadingFormENABLE(api_selector, [], true, 'sm')
-    api_data = JSON.stringify(api_data);
-    if (api_method.toLowerCase() === 'get') {
-        api_data = new URLSearchParams(JSON.parse(api_data)).toString();
-    }
-    let api_header = {
-        'Authorization': localStorage.getItem('session_key'),
-        'Content-Type': 'application/json'
-    };
-    if (!api_token) {
-        delete api_header['Authorization']
-    }
     $.ajax({
-        headers: api_header,
+        headers: {
+            'Authorization': localStorage.getItem('session_key'),
+            'Content-Type': 'application/json'
+        },
         timeout: 10000,
         method: api_method,
         url: api_url,
-        data: api_data,
+        data: JSON.stringify(api_data),
         success: function (res) {
             if (api_modal) {
                 $(api_modal).modal('show');
