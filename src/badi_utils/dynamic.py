@@ -17,6 +17,18 @@ from .utils import LoginRequiredMixin, CustomPermissionRequiredMixin
 DISABLE_FORM_SUBMIT = getattr(settings, "DISABLE_FORM_SUBMIT", True)
 
 
+def get_model_api_url(model: Model, view):
+    if hasattr(model, "get_api_url"):
+        url = model.get_api_url(view)
+        if url:
+            return url
+    meta_string = str(model._meta)
+    model_name = meta_string.split('.')
+    if len(model_name) > 1:
+        return '/api/v1/' + model_name[1] + '/'
+    return '/api/v1/' + meta_string.replace('.', '/') + '/'
+
+
 def multi_generator_url(model: Model, create=None, datatable=None, update=None, delete=None, add_model_to_url=True):
     # Use:
     #     urlpatterns = [] + multi_generator_url(Model,create=CreateView,update=UpdateView)
@@ -404,7 +416,7 @@ class DynamicCreateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Creat
     def get_api_url(self):
         if self.api_url:
             return self.api_url
-        return '/api/v1/' + str(self.model._meta).replace('.', '/') + '/'
+        return get_model_api_url(self.model, self.__class__.__name__)
 
     def get_updateURL(self):
         if self.updateURL:
@@ -590,7 +602,7 @@ class DynamicUpdateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Updat
     def get_api_url(self):
         if self.api_url:
             return self.api_url
-        return '/api/v1/' + str(self.model._meta).replace('.', '/') + '/'
+        return get_model_api_url(self.model, self.__class__.__name__)
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(**kwargs)
