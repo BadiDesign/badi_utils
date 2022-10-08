@@ -3,7 +3,7 @@
 {{ attr }}
             class="btn btn-sm font-weight-bold btn-light-{{ color }} {{ extra_class }}">
     <span class="svg-icon svg-icon-md ml-2">
-            {% with 'shared/svg/'|add:svg|add:".html" as template %}
+            {% with 'svg/'|add:svg|add:".html" as template %}
                 {% include template %}
             {% endwith %}
     </span>

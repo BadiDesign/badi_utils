@@ -1,5 +1,16 @@
 const success = "#1BC5BD", info = "#8950FC", warning = "#FFA800", danger = "#F64E60";
 const persianMonth = ["فروردین", "اردیبهشت", "خرداد", "تیر", "مرداد", "شهریور", "مهر", "آبان", "آذر", "دی", "بهمن", "اسفند",]
+if (!String.prototype.isInList) {
+    Object.defineProperty(String.prototype, 'isInList', {
+        get: () => function (...args) {
+            let value = this.valueOf();
+            for (let i = 0, l = args.length; i < l; i += 1) {
+                if (arguments[i] === value) return true;
+            }
+            return false;
+        }
+    });
+}
 const urlSearchParams = new URLSearchParams(window.location.search)
 const CURRENT_URL = window.location.pathname,
     CURRENT_SEARCH = window.location.search,
