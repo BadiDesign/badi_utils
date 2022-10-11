@@ -13,11 +13,29 @@ pattern_datetime = re.compile(r'(\d+/\d+/\d+)')
 
 
 class BadiModel:
-
-    def get_columns(self):
+    def get_all_fields(self, excludes=None):
+        if excludes is None:
+            excludes = []
         fields = [field.attname.replace('_id', '') for field in self._meta.fields]
         many_2_many = [x.name for x in self._meta.many_to_many]
-        return fields + many_2_many + ['']
+        return fields + many_2_many
+
+    def get_columns(self, excludes=None):
+        if excludes is None:
+            excludes = []
+        return self.get_all_fields(excludes) + ['']
+
+    def get_datatable_columns(self, excludes=None):
+        if excludes is None:
+            excludes = []
+        return self.get_all_fields(excludes) + ['']
+
+    def get_datatable_verbose_names(self, excludes=None):
+        if excludes is None:
+            excludes = []
+        fields = [field.verbose_name for field in self._meta.fields]
+        many_2_many = [x.verbose_name for x in self._meta.many_to_many]
+        return self.get_all_fields(excludes) + ['']
 
 
 class PersianDateField(models.DateField):

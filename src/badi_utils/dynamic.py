@@ -13,6 +13,7 @@ from django_datatables_view.base_datatable_view import BaseDatatableView
 from .date_calc import custom_change_date
 from .logging import log
 from .utils import LoginRequiredMixin, CustomPermissionRequiredMixin
+from django.utils.translation import gettext_lazy as _
 
 DISABLE_FORM_SUBMIT = getattr(settings, "DISABLE_FORM_SUBMIT", True)
 
@@ -287,6 +288,7 @@ class DynamicListView(LoginRequiredMixin, CustomPermissionRequiredMixin, Templat
     datatable_cols = None
     searchDB = True
     lenDB = True
+    success_url = True
     datatableEnable = True
     datatableURL = None
     updateURL = None
@@ -307,31 +309,24 @@ class DynamicListView(LoginRequiredMixin, CustomPermissionRequiredMixin, Templat
             return str(self.model._meta).split('.')[1] + '/' + str(self.model._meta).split('.')[1] + '_list.html'
 
     def get_datatable_cols(self):
-        return self.datatable_cols if self.datatable_cols else [field.verbose_name for field in
-                                                                self.model._meta.fields] + [x.name for x in
-                                                                                            self.model._meta.many_to_many]
+        return self.datatable_cols or self.model().get_datatable_columns()
 
     def get_success_url(self):
-        split = str(self.model._meta).replace('.', '/')
-        return '/dashboard/' + split + '/list'
+        return self.success_url or ""
 
     def get_deleteURL(self):
-        if self.deleteURL:
-            return self.deleteURL
-        return self.get_success_url().replace('list', 'delete/0')
+        return self.get_api_url()
 
     def get_updateURL(self):
-        if self.updateURL:
-            return self.updateURL
-        return self.get_success_url().replace('list', 'update/0')
+        return self.updateURL or 'update/0'
 
     def get_datatableURL(self):
-        return self.datatableURL if self.datatableURL else self.get_success_url().replace('/list', '/datatable')
+        return self.datatableURL or self.get_api_url() + 'datatable/'
 
     def get_success_message(self):
         if self.success_message:
             return self.success_message
-        return self.get_model_name() + ' با موفقیت ایجاد شد! '
+        return self.get_model_name() + " " + _("Created Successfully")
 
     def get_model_name(self):
         if self.model_name:
@@ -347,8 +342,8 @@ class DynamicListView(LoginRequiredMixin, CustomPermissionRequiredMixin, Templat
         if self.title:
             return self.title
         elif self.model_name:
-            return 'لیست ' + self.model_name
-        return 'لیست ' + self.model._meta.verbose_name
+            return _("List") + " " + self.model_name
+        return _("List") + " " + self.model._meta.verbose_name
 
     def get_context_data(self, *args, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -405,9 +400,7 @@ class DynamicCreateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Creat
             return str(self.model._meta).split('.')[1] + '/' + str(self.model._meta).split('.')[1] + '_create.html'
 
     def get_datatable_cols(self):
-        return self.datatable_cols if self.datatable_cols else [field.verbose_name for field in
-                                                                self.model._meta.fields] + [x.name for x in
-                                                                                            self.model._meta.many_to_many]
+        return self.datatable_cols if self.datatable_cols else self.model().get_datatable_columns()
 
     def get_success_url(self):
         if self.success_url:
@@ -436,7 +429,7 @@ class DynamicCreateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Creat
     def get_success_message(self):
         if self.success_message:
             return self.success_message
-        return self.get_model_name() + ' با موفقیت ایجاد شد! '
+        return self.get_model_name() + " " + _("Created Successfully")
 
     def get_form_fields_config(self):
         return self.form_fields_config
@@ -504,22 +497,18 @@ class DynamicDatatableView(LoginRequiredMixin, CustomPermissionRequiredMixin, Ba
     columns = None
     order_columns = None
     permission_required = None
+    search_qs_field = 'title'
 
     def get_columns(self):
-        return self.columns if self.columns else [field.attname.replace('_id', '') for field in
-                                                  self.model._meta.fields] + [x.name for x in
-                                                                              self.model._meta.many_to_many]
+        return self.columns or self.model().get_datatable_columns()
 
     def get_order_columns(self):
-        if self.order_columns:
-            return self.order_columns
-        else:
-            return self.model.get_coloums()
+        return self.order_columns or self.model().get_datatable_columns()
 
     def filter_queryset(self, qs):
         search = self.request.GET.get('search[value]', None)
         if search:
-            qs = qs.filter(Q(title__icontains=search))
+            qs = qs.filter(Q(**{self.search_qs_field + '__icontains': search}))
         return qs
 
     def render_column(self, row, column):
@@ -584,7 +573,7 @@ class DynamicUpdateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Updat
     def get_success_message(self):
         if self.success_message:
             return self.success_message
-        return self.get_model_name() + ' با موفقیت ویرایش شد! '
+        return self.get_model_name() + " " + _("Updated Successfully")
 
     def get_model_name(self):
         if self.model_name:
@@ -600,8 +589,8 @@ class DynamicUpdateView(LoginRequiredMixin, CustomPermissionRequiredMixin, Updat
         if self.title:
             return self.title
         elif self.model_name:
-            return 'ویرایش ' + self.model_name
-        return "ویرایش " + self.model._meta.verbose_name
+            return _("Update") + " " + self.object.__str__()
+        return _("Update") + " " + self.object.__str__()
 
     def get_log(self, form):
         return log(self.request.user, 2, 4, True, form.instance)
@@ -637,15 +626,6 @@ class DynamicDeleteView(LoginRequiredMixin, CustomPermissionRequiredMixin, View)
     permission_required = True
 
     def get(self, request, pk):
-        """
-         برای حذف کردن رکورد از جدول پایگاه داده استفاده میشود
-
-         Arguments:
-             request:
-                درخواست ارسال شده به صفحه است
-             pk:
-                مقدار کلید اصلی رکور است
-        """
         if DISABLE_FORM_SUBMIT:
             raise Http404()
         try:
